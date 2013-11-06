@@ -1,6 +1,6 @@
 ;; The first three lines of this file were inserted by DrRacket. They record metadata
 ;; about the language level of this file in a form that our tools can easily process.
-#reader(lib "htdp-advanced-reader.ss" "lang")((modname leitura-de-grafos) (read-case-sensitive #t) (teachpacks ()) (htdp-settings #(#t constructor repeating-decimal #t #t none #f ())))
+#reader(lib "htdp-advanced-reader.ss" "lang")((modname |Trabalho de Grafos|) (read-case-sensitive #t) (teachpacks ()) (htdp-settings #(#t constructor repeating-decimal #t #t none #f ())))
 ;; IMPORTANTE: para ter acesso a leitura de arquivos
 ;; é necessário configurar o DrRacket para a linguagem
 ;; "Advanced Student"
@@ -12,9 +12,9 @@
 ;; separando a informação lida em dois valores
 ;;   n : número de nodos
 ;;   g : grafo
-;(define r (with-input-from-file src read))
-;(define n (first r))
-;(define g (rest r))
+(define r (with-input-from-file src read))
+(define n (first r))
+(define g (rest r))
 
 ;; DEFINIÇÃO DE DADOS PARA O GRAFO
 
@@ -31,31 +31,34 @@
 ; onde todo símbolo referenciado nas adjacências a1 ... an
 ; ocorre como primeiro elemento em uma única adjacência ak
 
+; conta-n: Lista-de-números Número -> Número
+; obj: Dados uma lista-de-números (lista) e um número(n), retorna o numero de
+; ocorrências do número na lista.
 (define (conta-n lista n)
-  (cond
-    [(empty? lista) 0]
-    [(= n (first lista))
-     (+ 1 (conta-n (rest lista) n))]
-    [else (conta-n (rest lista) n)]))
+  (length (filter (lambda (x) (= x n)) lista)))
 
-
+; aresta-direcionada?: Lista-de-números Lista-de-números -> Booleano
+; obj: Dadas duas lista, retorna false se a aresta não é direcionada, caso o contrario,
+; retorna true.
 (define (aresta-direcionada? lista1 lista2)
   (cond
-    [(= (conta-n (rest lista1) (first lista2)) (conta-n (rest lista1) (first lista2))) false]
+    [(= (conta-n (rest lista1) (first lista2)) (conta-n (rest lista2) (first lista1))) false]
     [else true]))
-
-(define (compara-2 lista1 lista2 grafo1 grafo2)
+    
+; é-dígrafo?: Grafo Número -> Booleano
+; obj: Dados um grafo e seu tamanho, retorna true se o grafo é um dígrafo, caso o contrário,
+; retorna false.
+(define (é-dígrafo? grafo tamanho)
   (cond
-    [(= 2 (length grafo1)) (aresta-direcionada? (first grafo1) (first grafo2))]
-    [(empty? grafo2) 
-     (compara-2 (first (rest grafo1)) (second (rest grafo1)) (rest grafo1) (rest (rest grafo1)))]
-    [else (or 
-           (aresta-direcionada? lista1 lista2) 
-           (compara-2 lista1 (first grafo2) grafo1 (rest grafo2)))]))
+    [(< tamanho 2) false]
+    [(= tamanho 2)
+     (aresta-direcionada? (first grafo) (second grafo))]
+    [else (or (ormap (lambda (x) (aresta-direcionada? (first grafo) x)) (rest grafo))
+              (é-dígrafo? (rest grafo)))]))
 
-(define (é-dígrafo? grafo)
-  (cond
-    [(empty? grafo) false]
-    [(empty? (rest grafo)) false]
-    [else (compara-2 (first grafo) (second grafo) (rest grafo) (rest(rest grafo)))]))
-(compara-2 (list 0 1) (list 1 0 3 4) (list (list 1 0 3 4) (list 2)(list 3 1 4)(list 4 1 3 5)(list 5 4)) (list (list 2)(list 3 1 4)(list 4 1 3 5)(list 5 4)))
+(define (imprime-é-dígrafo? grafo tamanho)
+    (cond
+      [(é-dígrafo? grafo tamanho) (printf "O grafo é dígrafo.")]
+      [else (printf "O grafo não é dígrafo.")]))
+      
+(imprime-é-dígrafo? g n)
