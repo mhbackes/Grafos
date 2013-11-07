@@ -96,6 +96,27 @@
                           (vizinhos (first la) G))
                   (todos-vizinhos (rest la) p G))]))
                   
+; conectados-prof? : símbolo símbolo grafo -> boolean
+(define (conectados-prof? a b G)
+(busca-prof (list a) (list ) b G))
+
+; busca-prof : lista-simb, simb, lista-simb, grafo -> bool
+(define (busca-prof la p b G)
+(cond
+; não há nodos na lista
+[( empty? la) false]
+; o primeiro nodo é o destino?
+[( equal? (first la) b) true]
+; busca em profundidade a partir do primeiro nodo.
+[else (busca-prof
+(append (novos-vizinhos (first la) p G) (rest la))
+(cons (first la) p) b G)]))
+
+; novos-vizinhos: simb, lista-simb, grafo -> lista-simb
+(define (novos-vizinhos a p G)
+(filter (lambda (x) (not (member x p)))
+(vizinhos a G)))
+                  
 (define (é-conexo? grafo tamanho)
   (cond
     [(<= tamanho 1) true]
