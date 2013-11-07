@@ -116,3 +116,12 @@
     [(empty? range1) empty]
     [else (cons (cons (first range1) (filter (lambda (x) (not(= x (first range1)))) range2))(k-grafo (rest range1) range2))]))
 ;(write-file "grafo.txt" (~a (cons 1000 (k-grafo (range 0 3000 1) (range 0 3000 1)))))
+
+; tem-loop?: Grafo -> Booleano
+; obj: Dado um grafo, retorna true se um de seus nodos
+; tem um loop , caso o contrário, retorna false
+(define (tem-loop? grafo)
+  (cond
+    [(empty? grafo) false]
+    [else (or (member (first (first grafo))(rest (first grafo)))
+              (tem-loop? (rest grafo)))]))
