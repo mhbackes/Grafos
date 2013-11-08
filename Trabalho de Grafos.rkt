@@ -1,10 +1,6 @@
 ;; The first three lines of this file were inserted by DrRacket. They record metadata
 ;; about the language level of this file in a form that our tools can easily process.
 #reader(lib "htdp-advanced-reader.ss" "lang")((modname |Trabalho de Grafos|) (read-case-sensitive #t) (teachpacks ()) (htdp-settings #(#t constructor repeating-decimal #t #t none #f ())))
-;; IMPORTANTE: para ter acesso a leitura de arquivos
-;; é necessário configurar o DrRacket para a linguagem
-;; "Advanced Student"
-
 ;; Nome do arquivo a ser lido
 (define src "grafo.txt")
 ;; Lê o arquivo de entrada e armazena em r, 
@@ -15,29 +11,43 @@
 (define n (first r))
 (define g (rest r))
 
-;; DEFINIÇÃO DE DADOS PARA O GRAFO
+; um elemento nodo de Nodo é um número
+; e identifica um nodo.
 
-; Uma adjacência é uma lista
-;   (list s1 s2 ... sn)
-; onde
-;   s1 : símbolo 
-;        representa um nodo no grafo
-;   s2 ... sn : símbolo 
-;        representam os nodos adjacentes a s1
-;
-; Um grafo é uma lista de adjacências
-;   (list a1 a2 ... an)
-; onde todo símbolo referenciado nas adjacências a1 ... an
-; ocorre como primeiro elemento em uma única adjacência ak
+; um elemento lista-de-nodos de Lista-de-nodos é:
+; - ou empty;
+; - ou (cons nodo lista-de-nodos);
+;   onde:
+;   - nodo é um elemento de Nodo;
+;   - lista-de-nodos é  um elemento de Lista-de-nodos.
 
-; conta-n: Lista-de-números Número -> Número
+; um elemento adjacência de Adjacência é:
+; - ou empty;
+; - ou (cons nodo (cons lista-de-nodos empty));
+;   onde:
+;   - nodo é um elemento de Nodo;
+;   - lista-de-nodos é um elemento de Lista-de-nodos e
+;     representa a lista de nodos adjacentes a nodo.
+
+; um elemento grafo de Grafo é:
+; - ou empty;
+; - ou (cons adjacência grafo);
+;   onde:
+;   - adjacência é um elemento de Adjacência e
+;     representa um nodo e seus nodos adjacentes,
+;     o primeiro nodo de adjacência só pode ocorrer
+;     uma vez como primeiro nodo de uma adjacência
+;     em um grafo;
+;   - grafo é um elemento de Grafo.
+
+; conta-n: Lista-de-nodos Nodo -> Número
 ; obj: Dados uma lista-de-números (lista) e um número(n), retorna o numero de
 ; ocorrências do número na lista.
 (define (conta-n lista n)
   (length (filter (lambda (x) (= x n)) lista)))
 
-; aresta-direcionada?: Lista-de-números Lista-de-números -> Booleano
-; obj: Dadas duas lista, retorna false se a aresta não é direcionada, caso o contrario,
+; aresta-direcionada?: Adjacência Adjacência -> Booleano
+; obj: Dadas duas adjacências, retorna false se a aresta não é direcionada, caso o contrario,
 ; retorna true.
 (define (aresta-direcionada? lista1 lista2)
   (cond
@@ -61,24 +71,28 @@
       [else (printf "O grafo não é dígrafo.\n")]))
       
 (imprime-é-dígrafo? g n)
-; vizinhos : Número, Grafo -> Lista-de-números
-; (vizinhos n G) retorna todos os nodos no grafo G
+
+; vizinhos: Nodo Grafo -> Lista-de-números
+; obj: Dados um grafo e um nodo retorna todos os nodos no grafo G
 ; que recebem arestas de n
 (define (vizinhos n G)
   (cond
-    ; erro, não achou nodo
     [( empty? G) empty]
-    ; achou nodo, retorna nodos adjacentes
     [( equal? n (first (first G))) (rest (first G))]
-    ; não é o nodo atual, continua busca no resto da lista
     [else (vizinhos n (rest G))]))
 
 
-; conectados-larg? : Número Número Grafo -> Booleano
+; conectados-larg? : Nodo Nodo Grafo -> Booleano
+; obj: Dados dois nodos e um grafo, retorna true se existir um caminho
+; entre os dois nodos, caso o contrário retorna false.
 (define (conectados-larg? a b G)
   (busca-larg (list a) (list ) b G))
 
-; busca-larg : Lista-de-números,  Lista-de-números, Número, Grafo -> Booleano
+
+; busca-larg : Lista-de-nodos Lista-de-nodos Nodo Grafo -> Booleano
+; obj: Dados uma lista de nodos a percorrer (la), uma lista de nodos já percorridos (p)
+; um destino (b) e um grafo (G), retorna true se houver um caminho entre entre la e b,
+; caso o contrário retorna false.
 (define (busca-larg la p b G)
   (cond
     ; lista vazia?
@@ -88,40 +102,28 @@
     ; repete busca nos vizinhos dos vizinhos
     [else (busca-larg (todos-vizinhos la p G) (append la p) b G)]))
 
-; todos-vizinhos: Lista-de-números, Lista-de-números, Grafo -> Lista-de-Números
+; todos-vizinhos: Lista-de-nodos Lista-de-nodos Grafo -> Lista-de-Nodos
+; obj: Dados uma lista de nodos (la) uma lista de nodos percorridos (p)
+; e um grafo, retorna uma lista com todos os nodos adjacentes a la que não
+; estão em p.
 (define (todos-vizinhos la p G)
   (cond
     [( empty? la) empty]
     [else (append (filter (lambda (x) (not (member x p)))
                           (vizinhos (first la) G))
                   (todos-vizinhos (rest la) p G))]))
-                  
-; conectados-prof? : símbolo símbolo grafo -> boolean
-(define (conectados-prof? a b G)
-(busca-prof (list a) (list ) b G))
-
-; busca-prof : lista-simb, simb, lista-simb, grafo -> bool
-(define (busca-prof la p b G)
-(cond
-; não há nodos na lista
-[( empty? la) false]
-; o primeiro nodo é o destino?
-[( equal? (first la) b) true]
-; busca em profundidade a partir do primeiro nodo.
-[else (busca-prof
-(append (novos-vizinhos (first la) p G) (rest la))
-(cons (first la) p) b G)]))
-
-; novos-vizinhos: simb, lista-simb, grafo -> lista-simb
-(define (novos-vizinhos a p G)
-(filter (lambda (x) (not (member x p)))
-(vizinhos a G)))
-                  
+; é-conexo?: Grafo Número -> Booleano
+; obj: Dados um grafo e seu tamanho, retorna true se o grafo for conexo, caso o
+; contrário retorna false.
 (define (é-conexo? grafo tamanho)
   (cond
     [(<= tamanho 1) true]
     [else (teste-conectividade grafo (map first (cons (first (reverse grafo)) grafo)))]))
-    
+
+; teste-conectividade: Grafo Lista-de-nodos -> Booleano
+; obj: Dados um grafo e uma lista de nodos a serem testados, retorna true se
+; todos os nodos nodos estiverem contectados entre si, caso o contrário,
+; retorna false.
 (define (teste-conectividade grafo ldn)
   (cond
     [(empty? (rest ldn)) true]
@@ -136,7 +138,8 @@
   (cond
     [(empty? range1) empty]
     [else (cons (cons (first range1) (filter (lambda (x) (not(= x (first range1)))) range2))(k-grafo (rest range1) range2))]))
-;(write-file "grafo.txt" (~a (cons 1000 (k-grafo (range 0 3000 1) (range 0 3000 1)))))
+(define x 20)
+(write-file "grafos.txt" (~a (cons x (k-grafo (range 0 x 1) (range 0 x 1)))))
 
 ; tem-loop?: Grafo -> Booleano
 ; obj: Dado um grafo, retorna true se um de seus nodos
