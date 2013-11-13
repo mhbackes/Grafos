@@ -30,7 +30,7 @@
 ;     representa a lista de nodos adjacentes a nodo.
 
 ; um elemento grafo de Grafo é:
-; - ou empty;
+; - ou (cons adjacência empty);
 ; - ou (cons adjacência grafo);
 ;   onde:
 ;   - adjacência é um elemento de Adjacência e
@@ -40,6 +40,23 @@
 ;     em um grafo;
 ;   - grafo é um elemento de Grafo.
 
+; um elemento caminho de Caminho é:
+; - ou empty;
+; - ou (append (cons origem empty) lista-de-nodos (cons destino empty));
+;   onde:
+;   - origem é um elemento de Nodo e representa a
+;   origem do caminho em um grafo;
+;   - lista-de-nodos é um elemento de Lista-de-nodos e representa 
+;   os passos intermediários da origem até o destino em um caminho em um grafo;
+;   - destino é um elemento de Nodo e representa o
+;   destino do caminho em um grafo;
+
+; um elemento lista-de-caminhos de Lista-de-caminhos é:
+; - ou empty;
+; - ou (cons caminho lista-de-caminhos);
+;   onde:
+;   - caminho é um elemento de Caminho;
+;   - lista-de-caminhos é um elemento de Lista-de-caminhos.
 ; conta-n: Lista-de-nodos Nodo -> Número
 ; obj: Dados uma lista-de-números (lista) e um número(n), retorna o numero de
 ; ocorrências do número na lista.
@@ -95,11 +112,8 @@
 ; caso o contrário retorna false.
 (define (busca-larg la p b G)
   (cond
-    ; lista vazia?
-    [( empty? la) false]
-    ; destino pertence à lista de nodos atual?
-    [( member b la) true]
-    ; repete busca nos vizinhos dos vizinhos
+    [(empty? la) false]
+    [(member b la) true]
     [else (busca-larg (todos-vizinhos la p G) (append la p) b G)]))
 
 ; todos-vizinhos: Lista-de-nodos Lista-de-nodos Grafo -> Lista-de-Nodos
@@ -130,7 +144,70 @@
     [else (and (conectados-larg? (first ldn)(second ldn) grafo)
                (teste-conectividade grafo (rest ldn)))]))
 
-(é-conexo? g n)
+; tem-loop?: Grafo -> Booleano
+; obj: Dado um grafo, retorna true se um de seus nodos
+; tem um loop , caso o contrário, retorna false
+(define (tem-loop? grafo)
+  (cond
+    [(empty? grafo) false]
+    [else (or (member (first (first grafo))(rest (first grafo)))
+              (tem-loop? (rest grafo)))]))
+; testa-caminho: Lista-de-Nodos Nodo Caminho Grafo -> Lista-de-Caminhos
+; obj: Dados uma lista de nodos adjacentes (la), um destino (destino),
+; um caminho (caminho) e um grafo (grafo), retorna uma lista-de-caminhos
+; possíveis entre os nodos da lista nodos adjacentes e o destino no grafo
+; levando em conta o caminho já percorrido até chegar à lista de nodos 
+; adjacentes.
+(define (testa-caminho la destino caminho grafo)
+  (cond
+    [(empty? la) empty]
+    [(= (first la) destino) (cons (append caminho (list destino)) (testa-caminho (rest la) destino caminho grafo))]
+    [(member (first la) caminho) (testa-caminho (rest la) destino caminho grafo)]
+    [else (append (testa-caminho (vizinhos (first la) grafo) destino (append caminho (list (first la))) grafo)
+                  (testa-caminho (rest la) destino caminho grafo))]))
+
+; acha-caminho: Nodo Nodo Grafo -> Lista-de-Caminhos
+; obj: Dados um nodo de origem e outro de destino, retorna
+; uma lista com todos os possíveis caminhos entre eles
+(define (acha-caminho origem destino grafo tamanho)
+  (cond
+    [(= origem destino) (cond
+                          [(é-dígrafo? grafo tamanho)(map (lambda (x) (cons origem x))(testa-caminho (vizinhos origem grafo) destino empty grafo))]
+                          [else (append (caminho-loop origem (vizinhos origem grafo))
+                                        (orig-orig-pseudo origem grafo))])]   
+    [else (testa-caminho (list origem) destino empty grafo)]))
+
+; remove-todos: Nodo Lista-de-nodos ->Lista-de-nodos
+; obj: Dados um nodo e uma lista-de-nodos, retira da lista
+; os nodos iguais ao nodo.
+(define (remove-todos n lista)
+  (cond
+    [(member n lista) (remove-todos n (remove n lista))]
+    [else lista]))
+
+(define (caminho-loop origem vizinhos)
+  (cond
+    [(empty? vizinhos) empty]
+    [(= origem (first vizinhos)) (cons (list origem origem) (caminho-loop origem (rest vizinhos)))]
+    [else (caminho-loop origem (rest vizinhos))]))
+
+(define (orig-orig-pseudo origem grafo)
+  (map (lambda (x) (cons origem x))
+       (foldr (lambda (x y)(append (testa-caminho (remove-todos origem (vizinhos x grafo)) origem (list x) grafo) y))
+              empty 
+              (remove-todos origem (vizinhos origem grafo)))))
+
+; distância: Nodo Nodo -> Número
+; obj: Dados um nodo de origem e outro de destino,
+; calcula sua distância
+(define (distância origem destino grafo)
+    (distância-larg (list origem) empty destino grafo))
+
+(define (distância-larg la p b G)
+  (cond
+    [(empty? la) +inf.0]
+    [(member b la) 0]
+    [else (+ 1 (distância-larg (todos-vizinhos la p G) (append la p) b G))]))
 
 (require 2htdp/batch-io)
 (require racket/format)
@@ -141,11 +218,3 @@
 (define x 20)
 (write-file "grafos.txt" (~a (cons x (k-grafo (range 0 x 1) (range 0 x 1)))))
 
-; tem-loop?: Grafo -> Booleano
-; obj: Dado um grafo, retorna true se um de seus nodos
-; tem um loop , caso o contrário, retorna false
-(define (tem-loop? grafo)
-  (cond
-    [(empty? grafo) false]
-    [else (or (member (first (first grafo))(rest (first grafo)))
-              (tem-loop? (rest grafo)))]))
