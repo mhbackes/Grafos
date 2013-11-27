@@ -193,7 +193,7 @@
 
 (define (orig-orig-pseudo origem grafo)
   (map (lambda (x) (cons origem x))
-       (foldr (lambda (x y)(append (testa-caminho (remove-todos origem (vizinhos x grafo)) origem (list x) grafo) y))
+       (foldr (lambda (x y)(append (testa-caminho (remove origem (vizinhos x grafo)) origem (list x) grafo) y))
               empty 
               (remove-todos origem (vizinhos origem grafo)))))
 
