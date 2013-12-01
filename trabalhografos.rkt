@@ -73,65 +73,6 @@
 (define g1 (list la11 la12 la13))
 (define g2 (list la21 la22 la23))
 
-;-----------------------------------------FUNÇÕES PRINCIPAIS-----------------------------------------
-
-; é-dígrafo?: Grafo Número -> Booleano
-; obj: Dados um grafo e seu tamanho, retorna true se o grafo é um dígrafo, caso o contrário,
-; retorna false.
-(define (é-dígrafo? grafo tamanho)
-  (cond
-    [(< tamanho 2) false]
-    [(= tamanho 2)
-     (aresta-direcionada? (first grafo) (second grafo))]
-    [else (or (ormap (lambda (x) (aresta-direcionada? (first grafo) x)) (rest grafo))
-              (é-dígrafo? (rest grafo) (- tamanho 1)))]))
-; Exemplos:
-; (é-dígrafo? g1 3)
-; deve retornar false
-; (é-dígrafo? g2 3)
-; deve retornar true
-
-; é-conexo?: Grafo Número -> Booleano
-; obj: Dados um grafo e seu tamanho, retorna true se o grafo for conexo, caso o
-; contrário retorna false.
-(define (é-conexo? grafo tamanho)
-  (cond
-    [(<= tamanho 1) true]
-    [else (teste-conectividade grafo (map first (cons (first (reverse grafo)) grafo)))]))
-
-; Exemplos:
-; (é-conexo? g1 3)
-; deve retornar false
-; (é-conexo? g2 3)
-; deve retornar true
-
-; tem-ciclo?: Grafo Número -> Booleano
-; obj: Dado um grafo e seu tamanho, retorna true se o grafo possuir
-; um ciclo, caso contrário, retorna false
-(define (tem-ciclo? grafo tamanho)
-  (cond
-    [(é-dígrafo? grafo tamanho) (dígrafo-tem-cíclo? grafo)]
-    [else (pseudografo-tem-cíclo? grafo)]))
-
-; acha-caminho: Nodo Nodo Grafo -> Lista-de-Caminhos
-; obj: Dados um nodo de origem e outro de destino, retorna
-; uma lista com todos os possíveis caminhos entre eles
-(define (acha-caminho origem destino grafo tamanho)
-  (cond
-    [(= origem destino) (cond
-                          [(é-dígrafo? grafo tamanho)
-                           (map (lambda (x) (cons origem x))
-                                (testa-caminho (vizinhos origem grafo) destino empty grafo))]
-                          [else (append (caminho-loop origem (vizinhos origem grafo))
-                                        (orig-orig-pseudo origem grafo))])]   
-    [else (testa-caminho (list origem) destino empty grafo)]))
-
-; distância: Nodo Nodo Grafo-> Número
-; obj: Dados um nodo de origem e outro de destino,
-; calcula sua distância
-(define (distância origem destino grafo)
-    (distância-larg (list origem) empty destino grafo))
-
 ;-----------------------------------------FUNÇÕES AUXILIARES-----------------------------------------
 
 ; conta-n: Lista-de-nodos Nodo -> Número
@@ -272,6 +213,72 @@
   (cond
     [(member n lista) (remove-todos n (remove n lista))]
     [else lista]))
+
+;-----------------------------------------FUNÇÕES PRINCIPAIS-----------------------------------------
+
+; é-dígrafo?: Grafo Número -> Booleano
+; obj: Dados um grafo e seu tamanho, retorna true se o grafo é um dígrafo, caso o contrário,
+; retorna false.
+(define (é-dígrafo? grafo tamanho)
+  (cond
+    [(< tamanho 2) false]
+    [(= tamanho 2)
+     (aresta-direcionada? (first grafo) (second grafo))]
+    [else (or (ormap (lambda (x) (aresta-direcionada? (first grafo) x)) (rest grafo))
+              (é-dígrafo? (rest grafo) (- tamanho 1)))]))
+; Exemplos:
+; (é-dígrafo? g1 3)
+; deve retornar false
+; (é-dígrafo? g2 3)
+; deve retornar true
+
+; é-conexo?: Grafo Número -> Booleano
+; obj: Dados um grafo e seu tamanho, retorna true se o grafo for conexo, caso o
+; contrário retorna false.
+(define (é-conexo? grafo tamanho)
+  (cond
+    [(<= tamanho 1) true]
+    [else (teste-conectividade grafo (map first (cons (first (reverse grafo)) grafo)))]))
+
+; Exemplos:
+; (é-conexo? g1 3)
+; deve retornar false
+; (é-conexo? g2 3)
+; deve retornar true
+
+; tem-ciclo?: Grafo Número -> Booleano
+; obj: Dado um grafo e seu tamanho, retorna true se o grafo possuir
+; um ciclo, caso contrário, retorna false
+(define (tem-ciclo? grafo tamanho)
+  (cond
+    [(é-dígrafo? grafo tamanho) (dígrafo-tem-cíclo? grafo)]
+    [else (pseudografo-tem-cíclo? grafo)]))
+
+; Exemplos:
+; (tem-ciclo? g1 3)
+; deve retornar false
+; (tem-ciclo? g2 3)
+; deve retornar true
+
+; acha-caminho: Nodo Nodo Grafo -> Lista-de-Caminhos
+; obj: Dados um nodo de origem e outro de destino, retorna
+; uma lista com todos os possíveis caminhos entre eles
+(define (acha-caminho origem destino grafo tamanho)
+  (cond
+    [(= origem destino) (cond
+                          [(é-dígrafo? grafo tamanho)
+                           (map (lambda (x) (cons origem x))
+                                (testa-caminho (vizinhos origem grafo) destino empty grafo))]
+                          [else (append (caminho-loop origem (vizinhos origem grafo))
+                                        (orig-orig-pseudo origem grafo))])]   
+    [else (testa-caminho (list origem) destino empty grafo)]))
+
+; distância: Nodo Nodo Grafo-> Número
+; obj: Dados um nodo de origem e outro de destino,
+; calcula sua distância
+(define (distância origem destino grafo)
+    (distância-larg (list origem) empty destino grafo))
+
 ;----------------------------------------FUNÇÕES DE IMPRESSÃO----------------------------------------
 
 ; imprime-é-dígrafo?: Grafo Número -> Void
