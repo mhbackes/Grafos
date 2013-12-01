@@ -105,13 +105,13 @@
 ; (é-conexo? g2 3)
 ; deve retornar true
 
-; ESPAÇO PARA A FUNÇÃO DE DETECÇÃO DE CICLOS DO CLÁUDIO - ESPAÇO PARA A FUNÇÃO DE DETECÇÃO DE CICLOS DO CLÁUDIO - ESPAÇO PARA A FUNÇÃO DE DETECÇÃO
-; DE CICLOS DO CLÁUDIO - ESPAÇO PARA A FUNÇÃO DE DETECÇÃO DE CICLOS DO CLÁUDIO - ESPAÇO PARA A FUNÇÃO DE DETECÇÃO DE CICLOS DO CLÁUDIO - ESPAÇO PA
-; RA A FUNÇÃO DE DETECÇÃO DE CICLOS DO CLÁUDIO - ESPAÇO PARA A FUNÇÃO DE DETECÇÃO DE CICLOS DO CLÁUDIO - ESPAÇO PARA A FUNÇÃO DE DETECÇÃO DE CICLO
-; S DO CLÁUDIO - ESPAÇO PARA A FUNÇÃO DE DETECÇÃO DE CICLOS DO CLÁUDIO - ESPAÇO PARA A FUNÇÃO DE DETECÇÃO DE CICLOS DO CLÁUDIO - ESPAÇO PARA A FUN
-; ÇÃO DE DETECÇÃO DE CICLOS DO CLÁUDIO - ESPAÇO PARA A FUNÇÃO DE DETECÇÃO DE CICLOS DO CLÁUDIO - ESPAÇO PARA A FUNÇÃO DE DETECÇÃO DE CICLOS DO CLÁ
-; UDIO - ESPAÇO PARA A FUNÇÃO DE DETECÇÃO DE CICLOS DO CLÁUDIO - ESPAÇO PARA A FUNÇÃO DE DETECÇÃO DE CICLOS DO CLÁUDIO - ESPAÇO PARA A FUNÇÃO DE D
-; ETECÇÃO DE CICLOS DO CLÁUDIO - ESPAÇO PARA A FUNÇÃO DE DETECÇÃO DE CICLOS DO CLÁUDIO - ESPAÇO PARA A FUNÇÃO DE DETECÇÃO DE CICLOS DO CLÁUDIO - E
+; tem-ciclo?: Grafo Número -> Booleano
+; obj: Dado um grafo e seu tamanho, retorna true se o grafo possuir
+; um ciclo, caso contrário, retorna false
+(define (tem-ciclo? grafo tamanho)
+  (cond
+    [(é-dígrafo? grafo tamanho) (dígrafo-tem-cíclo? grafo)]
+    [else (pseudografo-tem-cíclo? grafo)]))
 
 ; acha-caminho: Nodo Nodo Grafo -> Lista-de-Caminhos
 ; obj: Dados um nodo de origem e outro de destino, retorna
@@ -194,6 +194,35 @@
                           (vizinhos (first la) G))
                   (todos-vizinhos (rest la) p G))]))
 
+; tem-loop?: Grafo -> Booleano
+; obj: Dado um grafo, retorna true se um de seus nodos
+; tem um loop , caso o contrário, retorna false
+(define (tem-loop? grafo)
+  (cond
+    [(empty? grafo) false]
+    [else (or (member (first (first grafo))(rest (first grafo)))
+              (tem-loop? (rest grafo)))]))
+
+; dígrafo-tem-ciclo?: Grafo -> Booleano
+; obj: Dado um dígrafo, retorna true se o grafo possuir
+; um ciclo, caso contrário, retorna false
+(define (dígrafo-tem-cíclo? grafo)
+     (ormap (lambda (x) (busca-larg (rest x) empty (first x) grafo)) grafo))
+
+; pseudo-ciclo: Grafo -> Booleano
+; obj: Dado um pseudografo, retorna true se o grafo possuir
+; um ciclo, caso contrário, retorna false
+(define (pseudo-ciclo la a grafo)
+  (ormap (lambda (x) (busca-larg (remove a (todos-vizinhos (list x) empty grafo)) (list x) a grafo)) la))
+
+; pseudografo-tem-ciclo?: Grafo -> Booleano
+; obj: Dado um pseudografo, retorna true se o grafo possuir
+; um ciclo, caso contrário, retorna false
+(define (pseudografo-tem-cíclo? grafo)
+    (cond
+      [(tem-loop? grafo) true] 
+      [else (ormap (lambda (x) (pseudo-ciclo (rest x) (first x) grafo)) grafo)]))
+
 ; testa-caminho: Lista-de-Nodos Nodo Caminho Grafo -> Lista-de-Caminhos
 ; obj: Dados uma lista de nodos adjacentes (la), um destino (destino),
 ; um caminho (caminho) e um grafo (grafo), retorna uma lista-de-caminhos
@@ -235,43 +264,6 @@
     [(empty? la) +inf.0]
     [(member b la) 0]
     [else (+ 1 (distância-larg (todos-vizinhos la p G) (append la p) b G))]))
-;----------------------------------------FUNÇÕES DE IMPRESSÃO----------------------------------------
-
-; imprime-é-dígrafo: Grafo Número -> Void
-; obj: Dados um grafo e seu tamanho, imprime
-; se ele é dígrafo ou não.
-(define (imprime-é-dígrafo? grafo tamanho)
-  (cond
-    [(é-dígrafo? grafo tamanho) (printf "O grafo é dígrafo.\n")]
-    [else (printf "O grafo não é dígrafo.\n")]))
-
-; imprime-é-dígrafo: Grafo Número -> Void
-; obj: Dados um grafo e seu tamanho, imprime
-; se ele é conexo ou não.
-(define (imprime-é-conexo? grafo tamanho)
-  (cond
-   [(é-conexo? grafo tamanho) (printf "O grafo é conexo.\n")]
-   [else (printf "O grafo não é conexo")]))
-
-; Chamada das funções de impressão:
-(imprime-é-dígrafo? g n)
-(imprime-é-conexo? g n)    
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 ; remove-todos: Nodo Lista-de-nodos -> Lista-de-nodos
 ; obj: Dados um nodo e uma lista-de-nodos, retira da lista
@@ -280,52 +272,33 @@
   (cond
     [(member n lista) (remove-todos n (remove n lista))]
     [else lista]))
+;----------------------------------------FUNÇÕES DE IMPRESSÃO----------------------------------------
 
-
-
-
-
-
-
-
-;;-----------------------------Coisas que o claudio tem que fazer--------------------
-
-; tem-loop?: Grafo -> Booleano
-; obj: Dado um grafo, retorna true se um de seus nodos
-; tem um loop , caso o contrário, retorna false
-(define (tem-loop? grafo)
+; imprime-é-dígrafo?: Grafo Número -> Void
+; obj: Dados um grafo e seu tamanho, imprime
+; se ele é dígrafo ou não.
+(define (imprime-é-dígrafo? grafo tamanho)
   (cond
-    [(empty? grafo) false]
-    [else (or (member (first (first grafo))(rest (first grafo)))
-              (tem-loop? (rest grafo)))]))
+    [(é-dígrafo? grafo tamanho) (printf "O grafo é dígrafo.\n")]
+    [else (printf "O grafo não é dígrafo.\n")]))
 
-(define (dígrafo-tem-cíclo? grafo)
-     (ormap (lambda (x) (busca-larg (rest x) empty (first x) grafo)) grafo))  ;(apagar esse comentario) ficou muito mais simples assim
-
-(define (pseudo-ciclo la a grafo)
-  (ormap (lambda (x) (busca-larg (remove a (todos-vizinhos (list x) empty grafo)) (list x) a grafo)) la))
-
-(define (pseudografo-tem-cíclo? grafo)
-    (cond
-      [(tem-loop? grafo) true] 
-      [else (ormap (lambda (x) (pseudo-ciclo (rest x) (first x) grafo)) grafo)]))
-
-
-(define (tem-ciclo? grafo tamanho)         ; (apagar esse comentario) eu queria que essa função retornasse true ou false e nao void
+; imprime-é-conexo?: Grafo Número -> Void
+; obj: Dados um grafo e seu tamanho, imprime
+; se ele é conexo ou não.
+(define (imprime-é-conexo? grafo tamanho)
   (cond
-    [(é-dígrafo? grafo tamanho) (dígrafo-tem-cíclo? grafo)]
-    [else (pseudografo-tem-cíclo? grafo)]))
+   [(é-conexo? grafo tamanho) (printf "O grafo é conexo.\n")]
+   [else (printf "O grafo não é conexo")]))
 
-(define (imprime-tem-ciclo? grafo tamanho)    ; (apagar esse comentario) colocar essa junto com as funções de impressão
+; imprime-tem-ciclo?: Grafo Número -> Void
+; obj: Dados um grafo e seu tamanho, imprime
+; se possui ou não um ciclo.
+(define (imprime-tem-ciclo? grafo tamanho)
     (cond
       [(tem-ciclo? grafo tamanho) (printf "O grafo é cíclico.\n")]
       [else (printf "O grafo é acíclico.\n")]))
 
-
-
+; Chamada das funções de impressão:
+(imprime-é-dígrafo? g n)
+(imprime-é-conexo? g n)
 (imprime-tem-ciclo? g n)
-      
-      
-
-;;--------------------------------------------------------------------------   
-
