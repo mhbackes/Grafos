@@ -1,6 +1,10 @@
 ;; The first three lines of this file were inserted by DrRacket. They record metadata
 ;; about the language level of this file in a form that our tools can easily process.
 #reader(lib "htdp-advanced-reader.ss" "lang")((modname trabalhografos) (read-case-sensitive #t) (teachpacks ()) (htdp-settings #(#t constructor repeating-decimal #t #t none #f ())))
+;; Claudio Rodrigo Gisch - Cartão: 00228366
+;; Marcos Henrique Backes - Cartão: 00228483
+
+
 ;; Nome do arquivo a ser lido
 (define src "grafo.txt")
 ;; Lê o arquivo de entrada e armazena em r, 
@@ -283,7 +287,7 @@
 ; origem e destino esse nodo, exceto loops.
 (define (orig-orig-pseudo origem grafo)
   (map (lambda (x) (cons origem x))
-       (foldr (lambda (x y)(append (testa-caminho (remove-todos origem (vizinhos x grafo)) origem (list x) grafo) y))
+       (foldr (lambda (x y)(append (testa-caminho (remove origem (vizinhos x grafo)) origem (list x) grafo) y))
               empty 
               (remove-todos origem (vizinhos origem grafo)))))
 
@@ -321,7 +325,7 @@
 (define (imprime-é-conexo? grafo tamanho)
   (cond
    [(é-conexo? grafo tamanho) (printf "O grafo é conexo.\n")]
-   [else (printf "O grafo não é conexo")]))
+   [else (printf "O grafo não é conexo.\n")]))
 
 ; imprime-tem-ciclo?: Grafo Número -> Void
 ; obj: Dados um grafo e seu tamanho, imprime
